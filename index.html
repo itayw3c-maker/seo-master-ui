@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SEO Master</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- התחברות -->
+  <section id="login" class="login hidden">
+    <div class="login-card">
+      <h1>SEO Master</h1>
+      <p class="muted">מערכת הקידום של צוות הודיה</p>
+      <form id="login-form">
+        <label>אימייל<input id="email" type="email" required autocomplete="email"></label>
+        <label>סיסמה<input id="password" type="password" required minlength="8" autocomplete="current-password"></label>
+        <button type="submit" class="primary" id="login-btn">כניסה</button>
+        <button type="button" class="link" id="toggle-mode">אין לך עדיין משתמש? הרשמה</button>
+      </form>
+      <p id="login-msg" class="msg"></p>
+    </div>
+  </section>
+
+  <!-- המערכת -->
+  <section id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand">SEO Master</div>
+      <nav><span class="tab active">ביטויי ליבה</span></nav>
+      <div class="user"><span id="user-email"></span><button class="link" id="logout">יציאה</button></div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <input id="client-search" class="search" placeholder="חיפוש לקוח">
+        <ul id="client-list"></ul>
+      </aside>
+
+      <main class="main">
+        <div id="empty" class="empty">בחר לקוח מהרשימה</div>
+        <div id="client-view" class="hidden">
+          <div class="client-head">
+            <div>
+              <h2 id="c-name"></h2>
+              <a id="c-domain" target="_blank" rel="noopener"></a>
+              <div id="c-badges" class="badges"></div>
+            </div>
+            <div class="stars-box">
+              <div class="stars-count"><span id="star-count">0</span> ★</div>
+              <div id="star-hint" class="muted small">יעד: 20-30 ביטויים</div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="seg">
+              <button data-filter="starred" class="active">מסומנים בכוכב</button>
+              <button data-filter="all">כל הביטויים</button>
+              <button data-filter="suggest">הצעות מ-Search Console</button>
+            </div>
+            <input id="kw-search" class="search" placeholder="חיפוש ביטוי">
+          </div>
+
+          <table class="kw-table">
+            <thead>
+              <tr>
+                <th class="col-star">★</th>
+                <th>ביטוי</th>
+                <th>אשכול</th>
+                <th class="num" title="מיקום ממוצע ב-Search Console">מיקום ממוצע</th>
+                <th class="num" title="חשיפות ב-90 יום">חשיפות</th>
+                <th class="num">נפח חיפוש</th>
+                <th>מקור</th>
+                <th>עמוד יעד</th>
+              </tr>
+            </thead>
+            <tbody id="kw-body"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>

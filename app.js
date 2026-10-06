@@ -43,6 +43,11 @@ $('login-form').onsubmit = async (e) => {
   $('login-btn').disabled = false;
 };
 
+$('google-btn').onclick = async () => {
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+  if (error) $('login-msg').textContent = 'הכניסה עם Google נכשלה: ' + error.message;
+};
+
 $('logout').onclick = () => sb.auth.signOut();
 
 sb.auth.onAuthStateChange((_ev, session) => render(session));

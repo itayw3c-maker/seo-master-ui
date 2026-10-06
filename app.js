@@ -25,14 +25,22 @@ $('login-form').onsubmit = async (e) => {
   e.preventDefault();
   const email = $('email').value.trim(), password = $('password').value;
   $('login-msg').textContent = '...';
+  $('login-btn').disabled = true;
   if (state.signup) {
     const { error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.href } });
-    $('login-msg').textContent = error ? 'שגיאה: ' + error.message
-      : 'נשלח אליך מייל אישור. לוחצים על הקישור במייל, חוזרים לכאן ונכנסים עם האימייל והסיסמה.';
+    $('login-msg').textContent = !error
+      ? 'נשלח אליך מייל אישור. לוחצים על הקישור במייל, חוזרים לכאן ונכנסים עם האימייל והסיסמה.'
+      : /security purposes|rate limit/i.test(error.message)
+        ? 'כבר נשלח אליך מייל אישור. בדוק את תיבת הדואר (גם בקידומי מכירות או ספאם).'
+        : 'שגיאה: ' + error.message;
   } else {
     const { error } = await sb.auth.signInWithPassword({ email, password });
-    $('login-msg').textContent = error ? 'הכניסה נכשלה: ' + error.message : '';
+    $('login-msg').textContent = !error ? ''
+      : /not confirmed/i.test(error.message) ? 'המשתמש עוד לא אושר. לחץ על הקישור במייל האישור ונסה שוב.'
+      : /invalid login/i.test(error.message) ? 'אימייל או סיסמה שגויים.'
+      : 'הכניסה נכשלה: ' + error.message;
   }
+  $('login-btn').disabled = false;
 };
 
 $('logout').onclick = () => sb.auth.signOut();

@@ -141,7 +141,13 @@ function drawMarket() {
     const d = dir(r.delta);
     return `<span class="tk"><span class="cl">${esc(r.client_name)}</span><b>${esc(r.keyword)}</b><span class="num">${fmt(r.position, 2)}</span><span class="num ${d}">${d === 'up' ? '▲' : d === 'down' ? '▼' : '•'}${fmt(Math.abs(r.delta), 2)}</span></span>`;
   }).join('');
-  $('ticker-track').innerHTML = items || '<span class="tk">ממתין לנתוני Search Console…</span>';
+  const track = $('ticker-track');
+  track.innerHTML = items || '<span class="tk">ממתין לנתוני Search Console…</span>';
+  // constant, readable speed: ~40 pixels per second regardless of how many items there are
+  requestAnimationFrame(() => {
+    const dist = track.scrollWidth + track.parentElement.clientWidth;
+    track.style.animationDuration = Math.max(30, Math.round(dist / 40)) + 's';
+  });
 }
 
 document.addEventListener('click', (e) => {

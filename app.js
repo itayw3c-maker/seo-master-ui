@@ -75,17 +75,36 @@ function showView(v) {
   $('view-market').classList.toggle('hidden', v !== 'market');
   $('view-keywords').classList.toggle('hidden', v !== 'keywords');
   $('view-jobs').classList.toggle('hidden', v !== 'jobs');
+  $('view-allowed').classList.toggle('hidden', v !== 'allowed');
   if (v === 'jobs') loadJobs();
 }
 
 // ---------- מסך שוק ----------
 function drawMarket() {
-  const m = state.market;
+  renderMarket('', state.market, state.clients, true);
+  const ok = new Set(state.clients.filter((c) => c.automation_allowed).map((c) => c.id));
+  const am = state.market.filter((r) => ok.has(r.client_id));
+  renderMarket('al-', am, state.clients.filter((c) => c.automation_allowed), false);
+  drawAllowedList(am);
+}
+
+// all starred keywords of the allowed clients, worst movers first
+function drawAllowedList(rows) {
+  const sorted = [...rows].sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0));
+  $('al-list').innerHTML = `<thead><tr><th>ביטוי</th><th>לקוח</th><th class="num">מיקום</th><th class="num">שינוי</th>
+      <th class="num">קליקים</th><th class="num">חשיפות</th><th class="num">▶</th></tr></thead><tbody>` +
+    (sorted.map((r) => `<tr><td><b>${esc(r.keyword)}</b></td><td class="small">${esc(r.client_name)}</td>
+      <td class="num">${fmt(r.position, 2)}</td><td class="num">${chip(r.delta)}</td><td class="num">${fmt(r.clicks)}</td>
+      <td class="num">${fmt(r.impressions)}</td><td class="num">${playBtn(r.keyword_id, r.client_id, r.keyword, r.delta)}</td></tr>`).join('')
+      || '<tr><td colspan="7" class="muted">אין נתונים</td></tr>') + '</tbody>';
+}
+
+function renderMarket(px, m, clients, withTicker) {
   const withData = m.filter((r) => r.delta !== null);
   const up = withData.filter((r) => dir(r.delta) === 'up');
   const down = withData.filter((r) => dir(r.delta) === 'down');
   const anyPeriod = m.find((r) => r.period_end);
-  if (anyPeriod) {
+  if (anyPeriod && withTicker) {
     const end = anyPeriod.period_end;
     $('period').textContent = `Search Console · 28 הימים עד ${ddmm(end)} מול 28 הימים שלפני`;
   }
@@ -100,7 +119,7 @@ function drawMarket() {
   const pc = pct(clicks, prevClicks), pi = pct(impr, prevImpr);
   const posDelta = posCur !== null && posPrev !== null ? posPrev - posCur : null;
   const pctTxt = (p) => (p === null ? '' : `<span class="${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '▲' : '▼'} ${fmt(Math.abs(p), 1)}%</span>`);
-  $('kpis').innerHTML = `
+  $(px + 'kpis').innerHTML = `
     <div class="kpi"><div class="lbl">ביטויים שעלו</div><div class="val up">${up.length}</div><div class="sub muted">מתוך ${withData.length} עם נתונים</div></div>
     <div class="kpi"><div class="lbl">ביטויים שירדו</div><div class="val down">${down.length}</div><div class="sub muted">${withData.length - up.length - down.length} ללא שינוי</div></div>
     <div class="kpi"><div class="lbl">מיקום ממוצע</div><div class="val">${fmt(posCur, 2)}</div><div class="sub">${chip(posDelta)}</div></div>
@@ -111,13 +130,13 @@ function drawMarket() {
   const row = (r) => `<tr class="click" data-client="${r.client_id}"><td><div class="kw">${esc(r.keyword)}</div><div class="cl">${esc(r.client_name)}</div></td>
       <td class="num mono">${fmt(r.prev_position, 2)} ← ${fmt(r.position, 2)}</td><td class="num">${chip(r.delta)}</td>
       <td class="num">${playBtn(r.keyword_id, r.client_id, r.keyword, r.delta)}</td></tr>`;
-  $('gainers').innerHTML = [...up].sort((a, b) => b.delta - a.delta).slice(0, 10).map(row).join('') || '<tr><td class="muted">אין נתונים עדיין</td></tr>';
-  $('losers').innerHTML = [...down].sort((a, b) => a.delta - b.delta).slice(0, 10).map(row).join('') || '<tr><td class="muted">אין נתונים עדיין</td></tr>';
+  $(px + 'gainers').innerHTML = [...up].sort((a, b) => b.delta - a.delta).slice(0, 10).map(row).join('') || '<tr><td class="muted">אין נתונים עדיין</td></tr>';
+  $(px + 'losers').innerHTML = [...down].sort((a, b) => a.delta - b.delta).slice(0, 10).map(row).join('') || '<tr><td class="muted">אין נתונים עדיין</td></tr>';
 
   // מדד לקוחות
   const by = new Map();
   m.forEach((r) => { if (!by.has(r.client_id)) by.set(r.client_id, []); by.get(r.client_id).push(r); });
-  const rows = state.clients.map((c) => {
+  const rows = clients.map((c) => {
     const ks = by.get(c.id) || [];
     const wd = ks.filter((r) => r.delta !== null);
     const cur = avg(wd.map((r) => Number(r.position))), prev = avg(wd.map((r) => Number(r.prev_position)));
@@ -125,7 +144,7 @@ function drawMarket() {
     const cl = ks.reduce((a, r) => a + (r.clicks || 0), 0), pcl = ks.reduce((a, r) => a + (r.prev_clicks || 0), 0);
     return { c, n: ks.length, cur, delta: cur !== null && prev !== null ? prev - cur : null, u, d, f: wd.length - u - d, cl, pcl };
   }).sort((a, b) => (b.delta ?? -999) - (a.delta ?? -999));
-  $('board').innerHTML = `<thead><tr><th>לקוח</th><th class="num">ביטויים ★</th><th class="num">מיקום ממוצע</th><th class="num">שינוי</th>
+  $(px + 'board').innerHTML = `<thead><tr><th>לקוח</th><th class="num">ביטויים ★</th><th class="num">מיקום ממוצע</th><th class="num">שינוי</th>
       <th>עלו / ירדו</th><th class="num">קליקים</th><th class="num">שינוי קליקים</th></tr></thead><tbody>` +
     rows.map((x) => {
       const tot = x.u + x.d + x.f || 1;
@@ -138,6 +157,7 @@ function drawMarket() {
         <td class="num">${fmt(x.cl)}</td><td class="num">${p === null ? '-' : `<span class="${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '+' : ''}${fmt(p, 1)}%</span>`}</td></tr>`;
     }).join('') + '</tbody>';
 
+  if (!withTicker) return;
   // טיקר
   const tk = [...withData].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 120);
   const items = tk.map((r) => {
@@ -155,6 +175,8 @@ function drawMarket() {
 
 // ---------- כפתור ▶ ומשימות ----------
 function playBtn(keywordId, clientId, keyword, delta) {
+  const c = state.clients.find((x) => x.id === clientId);
+  if (!c?.automation_allowed) return '<button class="play locked" disabled title="הלקוח נעול כרגע. עבודה אוטומטית רק בלקוחות מותרים">🔒</button>';
   return `<button class="play ${delta !== null && delta !== undefined && delta <= -FLAT ? 'hot' : ''}" data-play="${keywordId}"
     data-client="${clientId}" data-kw="${esc(keyword)}" title="הפעל משימת קידום לביטוי">▶</button>`;
 }
@@ -163,7 +185,7 @@ async function startJob(keywordId, clientId, keyword) {
   const { data: running } = await sb.from('jobs').select('id').eq('keyword_id', keywordId).in('status', ['queued', 'running']).limit(1);
   if (running?.length) { showView('jobs'); openJob(running[0].id); toast('כבר יש משימה פעילה לביטוי הזה'); return; }
   const { data, error } = await sb.from('jobs').insert({ client_id: clientId, keyword_id: keywordId, keyword }).select('id').single();
-  if (error) { toast('לא הצלחתי להתחיל משימה'); return; }
+  if (error) { toast(/נעול/.test(error.message) ? 'הלקוח נעול לעבודה אוטומטית' : 'לא הצלחתי להתחיל משימה'); return; }
   showView('jobs'); openJob(data.id); toast('המשימה נכנסה לתור');
 }
 

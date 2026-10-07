@@ -148,6 +148,9 @@ table { width: 100%; border-collapse: collapse; }
 .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--up); margin-inline-end: 6px; animation: pulse 1.2s infinite; }
 @keyframes pulse { 50% { opacity: .25; } }
 
+.play.locked { background: transparent; color: var(--muted); opacity: .45; cursor: not-allowed; font-size: 12px; }
+.allowed-note { background: var(--up-bg); color: var(--up); border: 1px solid var(--up); border-radius: 12px; padding: 10px 14px; font-weight: 500; }
+
 .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg);
          padding: 8px 16px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .toast.show { opacity: 1; }

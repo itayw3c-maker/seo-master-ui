@@ -6,7 +6,7 @@
   <title>SEO Master</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <!-- התחברות -->
@@ -29,6 +29,7 @@
       <nav class="tabs">
         <button class="tab active" data-view="market">שוק</button>
         <button class="tab" data-view="keywords">ביטויים</button>
+        <button class="tab" data-view="jobs">משימות <span id="jobs-badge" class="badge-run hidden"></span></button>
       </nav>
       <div class="period muted" id="period"></div>
       <div class="user">
@@ -93,6 +94,7 @@
                 <thead>
                   <tr>
                     <th class="col-star">★</th>
+                    <th class="col-star" title="הפעלת משימת קידום">▶</th>
                     <th>ביטוי</th>
                     <th class="num" title="מיקום ממוצע ב-Search Console, 28 ימים">מיקום</th>
                     <th class="num">שינוי</th>
@@ -110,11 +112,35 @@
         </section>
       </div>
     </main>
+    <!-- מסך משימות -->
+    <main id="view-jobs" class="view hidden">
+      <div class="layout">
+        <aside class="sidebar panel">
+          <h3>משימות אחרונות</h3>
+          <ul id="job-list"></ul>
+        </aside>
+        <section class="main">
+          <div id="job-empty" class="empty">לחץ ▶ ליד ביטוי כדי להתחיל משימת קידום, או בחר משימה מהרשימה</div>
+          <div id="job-view" class="hidden">
+            <div class="client-head">
+              <div>
+                <div class="muted small" id="job-client"></div>
+                <h2 id="job-keyword"></h2>
+                <div class="badges"><span id="job-status" class="badge"></span><span id="job-times" class="muted small"></span></div>
+              </div>
+              <button id="job-stop" class="stop-btn">⏹ עצור</button>
+            </div>
+            <div id="job-summary" class="panel summary hidden"></div>
+            <ol id="job-events" class="timeline"></ol>
+          </div>
+        </section>
+      </div>
+    </main>
   </section>
 
   <div id="toast" class="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
